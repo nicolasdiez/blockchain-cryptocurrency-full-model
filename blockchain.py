@@ -2,6 +2,8 @@ class Block:
     """
     Block: unit of storage in a blockchain network that supports cryptocurrency.
     A Block contains 1 or more transactions.
+    A transaction is a transfer of cryptocurrency between 2 participants
+    lalalalala
     """
     def __init__(self, data):
         self.data = data
