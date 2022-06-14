@@ -13,7 +13,7 @@ def crypto_hash(*args):
     """
     stringified_args = sorted(map(lambda data: json.dumps(data), args))
 
-    print(f'stringified_args: {stringified_args}')
+    # print(f'stringified_args: {stringified_args}')
 
     joined_data = ''.join(stringified_args)
 
