@@ -1,6 +1,13 @@
 import time
 from backend.util.crypto_hash import crypto_hash
 
+GENESIS_DATA = {
+    'timestamp': 1,
+    'last_hash': 'genesis_last_hash',
+    'hash': 'genesis_hash',
+    'data': []
+}
+
 
 class Block:
     """
@@ -46,7 +53,13 @@ class Block:
         """
         Generate the genesis block of the blockchain
         """
-        return Block(1, 'genesis_last_hash', 'genesis_hash', [])
+        # return Block(
+        #     timestamp=GENESIS_DATA['timestamp'],
+        #     last_hash=GENESIS_DATA['last_hash'],
+        #     hash=GENESIS_DATA['hash'],
+        #     data=GENESIS_DATA['data']
+        # )
+        return Block(**GENESIS_DATA)
 
 
 def main():  # created to include debug code here, so it only executes when directly calling this file from cli
