@@ -1,7 +1,7 @@
 import time
 from backend.util.crypto_hash import crypto_hash
-from backend.config import MINE_RATE
-from backend.config import SECONDS
+from backend.util.hex_to_binary import hex_to_binary
+from backend.config import MINE_RATE, SECONDS
 
 # declared as global dictionary variable to be passed as **kwargs argument
 GENESIS_DATA = {
@@ -60,7 +60,7 @@ class Block:
         hash = crypto_hash(timestamp, last_hash, data, difficulty, nonce)
 
         # Proof of Work
-        while hash[0:difficulty] != '0' * difficulty:
+        while hex_to_binary(hash)[0:difficulty] != '0' * difficulty:
             nonce += 1
             timestamp = time.time_ns()  # regenerate timestamp to be as accurate as possible (find nonce may take time)
             difficulty = Block.adjust_difficulty(last_block, timestamp)
