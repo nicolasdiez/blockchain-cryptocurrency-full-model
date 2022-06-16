@@ -2,7 +2,7 @@ import hashlib
 import json
 
 
-# equivalent to the lambda function in crypto_hash(*args)
+# equivalent to the lambda function used in crypto_hash(*args)
 def stringify(data):
         return json.dumps(data)
 
@@ -11,6 +11,9 @@ def crypto_hash(*args):
     """
     Return the SHA-256 hash of the input arguments
     """
+
+    # the idea is to sort and join all the input data before hashing it, so same data produces always the same hash,
+    # even if it comes as input in different order
     stringified_args = sorted(map(lambda data: json.dumps(data), args))
 
     # print(f'stringified_args: {stringified_args}')

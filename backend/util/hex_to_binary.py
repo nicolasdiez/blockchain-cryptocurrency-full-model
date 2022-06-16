@@ -20,6 +20,7 @@ HEX_TO_BINARY_CONVERSION_TABLE = {
 }
 
 
+# by using a binary format, the precision to find the required leading zeros (PoW) is incremented compared to HEX format
 def hex_to_binary(hex_string):
     binary_string = ''
 
@@ -29,6 +30,7 @@ def hex_to_binary(hex_string):
     return binary_string
 
 
+# for debugging purposes
 def main():
     number = 451
     hex_number = hex(number)[2:]  # get rid of the 0x prefix representation for hex numbers

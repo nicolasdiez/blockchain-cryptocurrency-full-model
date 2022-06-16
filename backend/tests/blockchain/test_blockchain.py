@@ -5,7 +5,8 @@ from backend.blockchain.block import GENESIS_DATA
 def test_blockchain_instance():
     blockchain = Blockchain()
 
-    assert blockchain.chain[0].hash == GENESIS_DATA['hash']  # check that 1st block is actually the genesis block
+    # check if 1st block is actually the genesis block
+    assert blockchain.chain[0].hash == GENESIS_DATA['hash']
 
 
 def test_add_block():
@@ -13,5 +14,6 @@ def test_add_block():
     data = 'test-data'
     blockchain.add_block(data)
 
-    assert blockchain.chain[-1].data == data  # check that the new block was properly added at the end of the chain
+    # check if the new block was properly added at the end of the chain
+    assert blockchain.chain[-1].data == data
 

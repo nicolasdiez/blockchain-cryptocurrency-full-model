@@ -1,4 +1,5 @@
 import time
+import sys
 from backend.util.crypto_hash import crypto_hash
 from backend.util.hex_to_binary import hex_to_binary
 from backend.config import MINE_RATE, SECONDS
@@ -16,9 +17,11 @@ GENESIS_DATA = {
 
 class Block:
     """
-    Block: unit of storage in a blockchain network that supports cryptocurrency.
-    A Block contains 1 or more transactions.
+    Block: unit of storage in a blockchain network.
+    A Block contains 1 or more transactions of cryptocurrency.
     """
+
+    # Constructor
     def __init__(self, timestamp, last_hash, hash, data, difficulty, nonce):
         self.timestamp = timestamp
         self.last_hash = last_hash
@@ -27,8 +30,9 @@ class Block:
         self.difficulty = difficulty
         self.nonce = nonce
 
-    def __repr__(self):   # __repr__ is a special method used to represent a class's objects as a string
-        # __repr__ is called by the repr() built-in function (then, it´s called by the print() built-in function)
+    # reminder: __repr__ is a special method used to represent a class's objects as a string
+    def __repr__(self):
+        # __repr__ is called by the repr() built-in function (therefore, it´s called by the print() built-in function)
         return (
             'Block('f'\n'
             f'timestamp: {self.timestamp},\n'
@@ -39,24 +43,17 @@ class Block:
             f'nonce: {self.nonce})\n'
         )
 
-    def mine_block_2(self):
-        timestamp = time.time_ns()
-        last_hash = self.hash
-        hash = f'{timestamp}-{last_hash}'
-
-        return Block(timestamp, last_hash, hash, self.data)
-
     @staticmethod
     def mine_block(last_block, data):
         """
-        Mine a block based on the given last_block and data.
-        To mine means finding a 'nonce' number that produces a 'hash' block value with 'difficulty' leading zeros.
+        Mine a block based on the given last_block and current data.
+        To mine means finding a 'nonce' number that produces a 'hashed' block value with 'difficulty' leading zeros.
         This approach is the so-called Proof of Work consensus.
         """
         timestamp = time.time_ns()
         last_hash = last_block.hash
-        difficulty = Block.adjust_difficulty(last_block, timestamp)
-        nonce = 0
+        difficulty = Block.adjust_difficulty(last_block, timestamp)  # difficulty adjusted dynamically w/ each new block
+        nonce = 0  # first nonce value to try
         hash = crypto_hash(timestamp, last_hash, data, difficulty, nonce)
 
         # Proof of Work
@@ -67,6 +64,22 @@ class Block:
             hash = crypto_hash(timestamp, last_hash, data, difficulty, nonce)
 
         return Block(timestamp, last_hash, hash, data, difficulty, nonce)
+
+    # Another implementation option for the mine block method
+    def mine_block_2(self, last_block):
+        self.timestamp = time.time_ns()
+        last_hash = last_block.hash
+        self.difficulty = Block.adjust_difficulty(last_block, self.timestamp)
+        self.hash = crypto_hash(self.timestamp, last_hash, self.data, self.difficulty, self.nonce)
+
+        # Proof of Work
+        while hex_to_binary(self.hash)[0:self.difficulty] != '0' * self.difficulty:
+            self.nonce += 1
+            self.timestamp = time.time_ns()  # regenerate timestamp to be as accurate as possible (loop may take time)
+            self.difficulty = Block.adjust_difficulty(last_block, self.timestamp)
+            self.hash = crypto_hash(self.timestamp, last_hash, self.data, self.difficulty, self.nonce)
+
+        return sys.exit()
 
     @staticmethod
     def genesis():
@@ -79,19 +92,23 @@ class Block:
         #     hash=GENESIS_DATA['hash'],
         #     data=GENESIS_DATA['data']
         # )
+
+        # using **kwargs to allow more/fewer arguments added/removed from the genesis block
         return Block(**GENESIS_DATA)
 
     @staticmethod
     def adjust_difficulty(last_block, timestamp):
         """
-        Calculate the new difficulty value according to the MINE_RATE.
+        Increases or decreases the difficulty of the next block based on how long it's taking to mine the new block.
         Increase difficulty if the current block is being mined quickly (current mining time < MINE_RATE).
         Decrease difficulty if the current block is being mined slowly (current mining time > MINE_RATE).
         """
 
+        # block is being mined quickly (time elapsed from last mined block has not yet reached MINE_RATE seconds)
         if (timestamp - last_block.timestamp) < MINE_RATE:
             return last_block.difficulty + 1
 
+        # block is being mined slowly (time elapsed from last mined block has already passed MINE_RATE seconds)
         if (last_block.difficulty - 1) > 0:
             return last_block.difficulty - 1
 
@@ -99,7 +116,8 @@ class Block:
         return 1
 
 
-def main():  # created to include debug code here, so it only executes when directly calling this file from cli
+# created to include debug code here, so it only executes when directly calling this file from cli
+def main():
     print('Executing -- block.py main()')
     # genesis_block = Block.genesis()
     # block = Block.mine_block(genesis_block, 'foo')

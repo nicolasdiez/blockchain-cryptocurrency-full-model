@@ -8,7 +8,7 @@ def test_mined_block_quickly():
     last_block = Block.mine_block(Block.genesis(), 'foo')
     mined_block = Block.mine_block(last_block, 'bar')
 
-    # assuming current mined_block is going to be mined quickly since it´s next line of code from mining the last_block
+    # assuming current mined_block is going to be mined quickly since it´s next line of code after mining the last_block
     assert mined_block.difficulty == last_block.difficulty + 1
 
 
@@ -32,7 +32,7 @@ def test_mined_block_difficulty_limits_low_at_1():
         1,
         0
     )
-    time.sleep(MINE_RATE / SECONDS)  # simulate that the current mined_block is mined slowly
+    time.sleep(MINE_RATE / SECONDS)  # to simulate that the current mined_block is mined slowly
     mined_block = Block.mine_block(last_block, 'bar')
 
     assert mined_block.difficulty == 1
