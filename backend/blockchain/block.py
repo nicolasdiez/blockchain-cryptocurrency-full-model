@@ -125,17 +125,20 @@ class Block:
         4- actual hashing of the block must meet the hash value field written in the block itself
         """
 
+        # 1 Last hash check
         if block.last_hash != last_block.hash:
             raise Exception('last_hash in current block does not match hash value in the last block')
 
+        # 2 Proof of Work check (leading 0's)
         if hex_to_binary(block.hash)[0:block.difficulty] != '0' * block.difficulty:
             raise Exception('Proof of Work leading zeros requirement not achieved')
 
-        # only allowing a maximum difficulty adjustment between neighbour blocks of 1
+        # 3 Difficulty check - only allowing a maximum difficulty adjustment between neighbour blocks of 1
         if abs(last_block.difficulty - block.difficulty) > 1:
-            raise Exception("Block difficulty can not be adjusted by more than 1 respect of the last block's")
+            raise Exception("Block difficulty can not be adjusted by more than 1")
 
-        # block.hash value not included because the hash in fact the value that crypto_hash calculates
+        # 4 Actual hash of the block check
+        # block.hash value not included because the hash is in fact the value that crypto_hash calculates
         re_calculated_hash = crypto_hash(
             block.timestamp,
             block.last_hash,
@@ -163,6 +166,7 @@ def main():
         Block.is_valid_block(genesis_block, bad_block)
     except Exception as e:
         print(f'is_valid_block: {e}')
+
 
 if __name__ == '__main__':
     main()
