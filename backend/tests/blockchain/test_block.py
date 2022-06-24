@@ -41,7 +41,7 @@ def test_is_valid_block_error_in_last_hash(last_block, current_block):
     # with 'match' param we compare if the exception text message thrown by is_valid_block() is the one expected
     # if the exception text thrown by Block.is_valid_block() matches the text in 'match=...', then the test is OK
     with pytest.raises(Exception, match='last_hash in current block does not match hash value in the last block'):
-        # method here will raise an exception since the last hash value has been tampered
+        # this will raise an exception since the last hash value has been tampered
         Block.is_valid_block(last_block, current_block)
 
 

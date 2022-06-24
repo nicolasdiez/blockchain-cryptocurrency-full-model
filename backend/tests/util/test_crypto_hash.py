@@ -3,8 +3,8 @@ from backend.util.crypto_hash import crypto_hash
 
 def test_crypto_hash():
     # crypto_hash method should return the same hash value with arguments of different data types in any given order
-    assert crypto_hash(1, [2], 'three') == crypto_hash('three', 1, [2])
+    assert crypto_hash(2, 'one', [3]) == crypto_hash([3], 2, 'one')
 
-    # master hash testing of the data entry 'foo'
-    assert crypto_hash('foo') == 'b2213295d564916f89a6a42455567c87c3f480fcd7a1c15e220f17d7169a790b'
+    # master hash testing of a fixed data entry
+    assert crypto_hash('test-cryptohash-method') == '948db9dc2aec86f31a30bd7747818d0fbd8cac7866e8b0923c9b5272c85271ed'
 
