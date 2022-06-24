@@ -23,7 +23,7 @@ def blockchain_with_some_blocks(number_of_blocks):
     return blockchain
 
 
-def is_valid_chain_error_in_genesis_block(blockchain_with_some_blocks(5)):
+def is_valid_chain_error_in_genesis_block(blockchain_with_some_blocks):
     blockchain_with_some_blocks.chain[0].hash = 'tampered_hash'
 
     # pytest.raises() tells python that next chunk of code will raise an exception
@@ -32,7 +32,7 @@ def is_valid_chain_error_in_genesis_block(blockchain_with_some_blocks(5)):
         Blockchain.is_valid_chain(blockchain_with_some_blocks.chain)
 
 
-def test_is_valid_chain(blockchain_with_some_blocks(5)):
+def test_is_valid_chain(blockchain_with_some_blocks):
     Blockchain.is_valid_chain(blockchain_with_some_blocks.chain)
 
 
