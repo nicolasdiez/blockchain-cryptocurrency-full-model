@@ -40,29 +40,31 @@ def test_is_valid_block_error_in_last_hash(last_block, current_block):
     # raises() tells Python that next chunk of code will raise an exception -> so we catch it and check if it´s expected
     # with 'match' param we compare if the exception text message thrown by is_valid_block() is the one expected
     # if the exception text thrown by Block.is_valid_block() matches the text in 'match=...', then the test is OK
-    with pytest.raises(Exception, match='last_hash in current block does not match hash value in the last block'):
+    with pytest.raises(Exception, match='Error in last hash'):
         # this will raise an exception since the last hash value has been tampered
         Block.is_valid_block(last_block, current_block)
 
 
-def is_valid_block_error_in_proof_of_work(last_block, current_block):
-    current_block.hash = '12345'
+def test_is_valid_block_error_in_proof_of_work(last_block, current_block):
+    # tamper the hash with no leading zeros
+    current_block.hash = 'fabc'
 
     with pytest.raises(Exception, match='Proof of Work leading zeros requirement not achieved'):
         Block.is_valid_block(last_block, current_block)
 
 
-def is_valid_block_raised_difficulty(last_block, current_block):
+def test_is_valid_block_raised_difficulty(last_block, current_block):
     raised_difficulty = 10
     current_block.difficulty = raised_difficulty
-    current_block.hash = f'{"0" * raised_difficulty}nico1234'
+    current_block.hash = f'{"0" * raised_difficulty}abcd0123'
 
     with pytest.raises(Exception, match='Block difficulty can not be adjusted by more than 1'):
         Block.is_valid_block(last_block, current_block)
 
 
-def is_valid_block_error_in_block_hash(last_block, current_block):
-    current_block.hash = '000000000000nico1234567'  # with the zeros we assure the PoW is met, so we want to check hash
+def test_is_valid_block_error_in_block_hash(last_block, current_block):
+    # with the zeros we assure the PoW is met, because we want to check hash value itself
+    current_block.hash = '000000000000abcd0123'
 
     with pytest.raises(Exception, match='The block hash is not correct'):
         Block.is_valid_block(last_block, current_block)

@@ -28,14 +28,36 @@ class Blockchain:
         2- blocks forming the chain must have the correct format
         """
 
-        # validate every block, except for the 1st one (i.e. the genesis block)
+        # 1
+        if chain[0] != Block.genesis():
+            raise Exception('The genesis block is not correct')
+
+        # 2 validate every block, except for the 1st one (i.e. the genesis block)
         for i in range(1, len(chain)):
             current_block = chain[i]
             last_block = chain[i-1]
             Block.is_valid_block(last_block, current_block)
 
-        if chain[0] != Block.genesis():
-            raise Exception ('The genesis block is not correct')
+    def replace_chain(self, incoming_chain):
+        """
+        Replace the local copy of the chain with the incoming chain broadcasted by the rest of the network nodes.
+        The local chain is replaced if all these conditions are met:
+        1- The incoming chain is longer than the local chain
+        2- The incoming chain is a valid chain regarding its formatting
+        """
+
+        # 1
+        if len(incoming_chain) <= len(self.chain):
+            raise Exception('Can not replace the local chain. The incoming chain must be longer')
+
+        # 2
+        try:
+            Blockchain.is_valid_chain(incoming_chain)
+        except Exception as exception:
+            raise Exception(f'Can not replace the local chain. The incoming chain must be valid: {exception}')
+
+        # if conditions 1 and 2 are met, replace the local copy of the chain with the incoming broadcasted chain
+        self.chain = incoming_chain
 
 
 def main():  # including debug code here, so it only executes when directly call this file from cli

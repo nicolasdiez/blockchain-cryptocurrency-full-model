@@ -133,7 +133,7 @@ class Block:
 
         # 1 Last hash check
         if current_block.last_hash != last_block.hash:
-            raise Exception('last_hash in current block does not match hash value in the last block')
+            raise Exception('Error in last hash (last_hash in current block does not match hash of the last block)')
 
         # 2 Proof of Work check (leading 0's)
         if hex_to_binary(current_block.hash)[0:current_block.difficulty] != '0' * current_block.difficulty:
@@ -153,7 +153,7 @@ class Block:
             current_block.nonce)
 
         if re_calculated_hash != current_block.hash:
-            return Exception('The block hash is not correct')
+            raise Exception('The block hash is not correct')
 
 
 # main() used to debug, it only executes when directly calling this file from cli
