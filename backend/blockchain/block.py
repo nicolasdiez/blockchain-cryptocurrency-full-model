@@ -11,8 +11,7 @@ GENESIS_DATA = {
     'hash': 'genesis_hash',
     'data': [],
     'difficulty': 3,  # initial difficulty
-    'nonce': 'genesis_nonce'
-}
+    'nonce': 'genesis_nonce'}
 
 
 class Block:
@@ -154,6 +153,12 @@ class Block:
 
         if re_calculated_hash != current_block.hash:
             raise Exception('The block hash is not correct')
+
+    def to_dictionary(self):
+        """
+        Transform the block into a dictionary which contains its attributes
+        """
+        return self.__dict__
 
 
 # main() used to debug, it only executes when directly calling this file from cli

@@ -10,7 +10,7 @@ class Blockchain:
         # first block of the chain is always the genesis block
         self.chain = [Block.genesis()]
 
-    def __repr__(self):  # method to print the Blockchain objects as strings
+    def __repr__(self):  # method to print the Blockchain object as string
         return f'Blockchain: {self.chain}'
 
     def add_block(self, data):
@@ -59,8 +59,21 @@ class Blockchain:
         # if conditions 1 and 2 are met, replace the local copy of the chain with the incoming broadcasted chain
         self.chain = incoming_chain
 
+    def to_list(self):
+        """
+        Transform the blockchain into a list of blocks
+        """
+        chain_list = []
 
-def main():  # including debug code here, so it only executes when directly call this file from cli
+        for i_block in self.chain:
+            chain_list.append(i_block.to_dictionary())
+
+        return chain_list
+
+        # return list(map(lambda block: block.to_dictionary(), self.chain))
+
+
+def main():  # including debug code here, so it only executes when directly calling this file from cli
     blockchain = Blockchain()
     blockchain.add_block('one')
     blockchain.add_block('two')
