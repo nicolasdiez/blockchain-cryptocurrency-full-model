@@ -1,13 +1,80 @@
+import pytest
+
 from backend.blockchain.block import Block, GENESIS_DATA
 import time
 from backend.config import MINE_RATE, SECONDS
+from backend.util.hex_to_binary import hex_to_binary
+import pytest
+
+
+# because a lot of tests are using these 2 objects (last_block and current_block), we declare them as @fixtures
+@pytest.fixture
+def last_block():
+    return Block.genesis()
+
+
+@pytest.fixture
+def current_block(last_block):
+    return Block.mine_block(last_block, 'data-test')
+
+
+def test_is_valid_block(last_block, current_block):
+
+    # These objects are now created in the @fixtures, so we dont need them here anymore
+    # last_block = Block.genesis()
+    # current_block = Block.mine_block(last_block, 'data-test')
+
+    # if the method doesnt raise an exception the test passes implicitly
+    Block.is_valid_block(last_block, current_block)
+
+
+def test_is_valid_block_error_in_last_hash(last_block, current_block):
+
+    # These objects are now created in the @fixtures, so we dont need them here anymore
+    # last_block = Block.genesis()
+    # current_block = Block.mine_block(last_block, 'data-test')
+
+    # alter value of the last block hash in the current block
+    current_block.last_hash = 'tampered_last_hash'
+
+    # raises() tells Python that next chunk of code will raise an exception -> so we catch it and check if it´s expected
+    # with 'match' param we compare if the exception text message thrown by is_valid_block() is the one expected
+    # if the exception text thrown by Block.is_valid_block() matches the text in 'match=...', then the test is OK
+    with pytest.raises(Exception, match='Error in last hash'):
+        # this will raise an exception since the last hash value has been tampered
+        Block.is_valid_block(last_block, current_block)
+
+
+def test_is_valid_block_error_in_proof_of_work(last_block, current_block):
+    # tamper the hash with no leading zeros
+    current_block.hash = 'fabc'
+
+    with pytest.raises(Exception, match='Proof of Work leading zeros requirement not achieved'):
+        Block.is_valid_block(last_block, current_block)
+
+
+def test_is_valid_block_raised_difficulty(last_block, current_block):
+    raised_difficulty = 10
+    current_block.difficulty = raised_difficulty
+    current_block.hash = f'{"0" * raised_difficulty}abcd0123'
+
+    with pytest.raises(Exception, match='Block difficulty can not be adjusted by more than 1'):
+        Block.is_valid_block(last_block, current_block)
+
+
+def test_is_valid_block_error_in_block_hash(last_block, current_block):
+    # with the zeros we assure the PoW is met, because we want to check hash value itself
+    current_block.hash = '000000000000abcd0123'
+
+    with pytest.raises(Exception, match='The block hash is not correct'):
+        Block.is_valid_block(last_block, current_block)
 
 
 def test_mined_block_quickly():
     last_block = Block.mine_block(Block.genesis(), 'foo')
     mined_block = Block.mine_block(last_block, 'bar')
 
-    # assuming current mined_block is going to be mined quickly since it´s next line of code from mining the last_block
+    # assuming current mined_block is going to be mined quickly since it´s next line of code after mining the last_block
     assert mined_block.difficulty == last_block.difficulty + 1
 
 
@@ -31,7 +98,7 @@ def test_mined_block_difficulty_limits_low_at_1():
         1,
         0
     )
-    time.sleep(MINE_RATE / SECONDS)  # simulate that the current mined_block is mined slowly
+    time.sleep(MINE_RATE / SECONDS)  # to simulate that the current mined_block is mined slowly
     mined_block = Block.mine_block(last_block, 'bar')
 
     assert mined_block.difficulty == 1
@@ -46,7 +113,7 @@ def test_mine_block():
     assert block.data == data
     assert block.last_hash == last_block.hash
 
-    assert block.hash[0:block.difficulty] == '0' * block.difficulty
+    assert hex_to_binary(block.hash)[0:block.difficulty] == '0' * block.difficulty
 
 
 def test_genesis():
