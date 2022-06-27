@@ -28,12 +28,19 @@ pip3 install -r requirements.txt
 
 *First make sure to Activate the virtual environment (see above)
 ```
-python -m pytest backend/tests
+python -u -m pytest backend/tests
 ```
 
 **Start the application (Flask server) and API**
 
 *First make sure to Activate the virtual environment (see above)
 ```
-python -m backend.app
+python -u -m backend.app
+```
+
+**Run a Node/Peer instance**
+
+*First make sure to Activate the virtual environment (see above)
+```
+export PEER=True && python -u -m backend.app
 ```
