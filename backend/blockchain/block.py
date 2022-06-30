@@ -160,6 +160,13 @@ class Block:
         """
         return self.__dict__
 
+    @staticmethod
+    def from_dictionary(block_dictionary):
+        """
+        Transform a dictionary containing block attributes into an actual block instance
+        """
+        return Block(**block_dictionary)
+
 
 # main() used to debug, it only executes when directly calling this file from cli
 def main():

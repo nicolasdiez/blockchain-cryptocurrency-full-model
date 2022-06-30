@@ -6,6 +6,8 @@ from pubnub.pubnub import PubNub
 from pubnub.pnconfiguration import PNConfiguration
 from pubnub.callbacks import SubscribeCallback
 
+from backend.blockchain.block import Block
+
 
 # pubnub.com
 subscribe_key = 'sub-c-c6ff95f5-1609-4bd6-a63f-059496eec326'
@@ -27,8 +29,26 @@ CHANNELS = {
 
 
 class Listener(SubscribeCallback):
+    def __init__(self, blockchain):
+        self.blockchain = blockchain
+
     def message(self, pubnub, message_object):
         print(f'\n-- Channel: {message_object.channel} | Message: {message_object.message}')
+
+        # check if the message is received in the BLOCK channel
+        if message_object.channel == CHANNELS['BLOCK']:
+            block_received = Block.from_dictionary(message_object.message)
+
+            # append the received block to a copy of the current local chain
+            potential_chain = self.blockchain.chain[:]
+            potential_chain.append(block_received)
+
+            # check if the new potential chain (which includes the received block) will replace the local chain
+            try:
+                self.blockchain.replace_chain(potential_chain)
+                print(f'\n-- Local chain replaced successfully')
+            except Exception as exception:
+                print(f'\n-- Local chain was NOT replaced: {exception} ')
 
 
 class PubSub():
@@ -36,7 +56,7 @@ class PubSub():
     Manages the publish/subscribe layer of the application.
     This layer provides communication capabilities between the nodes of the blockchain network.
     """
-    def __init__(self):
+    def __init__(self, blockchain):
         """
         Constructor:
         - subscribe to CHANNELS
@@ -47,7 +67,7 @@ class PubSub():
         # sends an HTTP request to PubNub.com informing that the instance pubnub is now subscribed to TEST_CHANNEL
         self.pubnub.subscribe().channels(CHANNELS.values()).execute()
 
-        self.my_listener = Listener()
+        self.my_listener = Listener(blockchain)
 
         self.pubnub.add_listener(self.my_listener)
 

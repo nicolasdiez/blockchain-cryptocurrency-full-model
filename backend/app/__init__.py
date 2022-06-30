@@ -13,10 +13,10 @@ app = Flask(__name__)
 blockchain = Blockchain()
 
 # create a PubSub instance
-pubsub = PubSub()
+pubsub = PubSub(blockchain)
 
 
-# 1st endpoint -> default
+# 1st endpoint --> default
 @app.route("/")
 def route_default():
     return 'Welcome to the Blockchain!'
