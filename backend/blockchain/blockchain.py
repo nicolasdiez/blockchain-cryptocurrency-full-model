@@ -72,6 +72,16 @@ class Blockchain:
 
         # return list(map(lambda block: block.to_dictionary(), self.chain))
 
+    @staticmethod
+    def from_list(chain_list):
+        """
+         Transform a list of blocks into an actual blockchain instance
+         """
+        blockchain = Blockchain()
+        blockchain.chain = list(map(lambda block_dictionary: Block.from_dictionary(block_dictionary), chain_list))
+
+        return blockchain
+
 
 def main():  # including debug code here, so it only executes when directly calling this file from cli
     blockchain = Blockchain()
