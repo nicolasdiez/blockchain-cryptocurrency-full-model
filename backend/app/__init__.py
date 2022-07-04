@@ -7,13 +7,13 @@ from flask import Flask, jsonify
 from backend.blockchain.blockchain import Blockchain
 from backend.pubsub import PubSub
 
-# Create Flask web server
+# create Flask web server
 app = Flask(__name__)
 
-# create a blockchain instance
+# create the blockchain instance for the Node
 blockchain = Blockchain()
 
-# create a PubSub instance
+# create Publish/Subscribe instance (PubSub) to share events and messages among the peers of the blockchain network
 pubsub = PubSub(blockchain)
 
 

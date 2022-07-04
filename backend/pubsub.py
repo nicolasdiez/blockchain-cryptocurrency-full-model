@@ -43,10 +43,10 @@ class Listener(SubscribeCallback):
             potential_chain = self.blockchain.chain[:]
             potential_chain.append(block_received)
 
-            # check if the new potential chain (which includes the received block) will replace the local chain
+            # check if the new potential chain (which includes the received block) will replace, or not, the local chain
             try:
                 self.blockchain.replace_chain(potential_chain)
-                print(f'\n-- Local chain replaced successfully')
+                print(f'\n-- Local chain replaced SUCCESSFULLY')
             except Exception as exception:
                 print(f'\n-- Local chain was NOT replaced: {exception} ')
 
