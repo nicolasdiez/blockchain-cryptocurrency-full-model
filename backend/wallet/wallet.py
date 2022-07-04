@@ -15,8 +15,8 @@ class Wallet:
     - Authorize transactions by the peer (miner) by using the pair of public/private keys
     """
     def __init__(self):
-        # getting just first 6 chars to ease debugging
-        self.address = str(uuid.uuid4())[:6]
+        # getting just first 6 chars as the wallet address to ease debugging
+        self.address = str(uuid.uuid4())[:8]
 
         # using Standard Efficient Cryptography Prime 256-bit algorithm (bitcoin uses this one as well)
         self.private_key = ec.generate_private_key(ec.SECP256K1(), default_backend())
