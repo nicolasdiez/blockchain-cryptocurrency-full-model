@@ -87,6 +87,12 @@ class Transaction:
                                        transaction.input['signature']):
             raise Exception('Error in transaction signature')
 
+    def to_dictionary(self):
+        """
+        Transform the transaction into a dictionary which contains its attributes
+        """
+        return self.__dict__
+
 
 def main():
     transaction = Transaction(Wallet(), 'recipient', 15)
