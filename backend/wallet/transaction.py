@@ -6,7 +6,7 @@ from backend.wallet.wallet import Wallet
 
 class Transaction:
     """
-    Written proof of a currency exchange between one sender and one or more recipients
+    A Transaction is a written proof of a currency exchange between one sender and one or more recipients
     Considerations of a Transaction:
     - Only 1 transaction per sender per block
     - A transaction can contain multiple recipients
