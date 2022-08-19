@@ -8,6 +8,8 @@ from pubnub.callbacks import SubscribeCallback
 
 from backend.blockchain.block import Block
 
+from backend.wallet.transaction import Transaction
+
 
 # pubnub.com
 subscribe_key = 'sub-c-c6ff95f5-1609-4bd6-a63f-059496eec326'
@@ -24,14 +26,17 @@ BLOCK_CHANNEL = 'BLOCK_CHANNEL'
 
 CHANNELS = {
     'TEST': 'TEST',
-    'BLOCK': 'BLOCK'
+    'BLOCK': 'BLOCK',
+    'TRANSACTION' : 'TRANSACTION'
 }
 
 
 class Listener(SubscribeCallback):
-    def __init__(self, blockchain):
+    def __init__(self, blockchain, transaction_pool):
         self.blockchain = blockchain
+        self.transaction_pool = transaction_pool
 
+    # this method is executed every time a message is received by the Listener
     def message(self, pubnub, message_object):
         print(f'\n-- Channel: {message_object.channel} | Message: {message_object.message}')
 
@@ -50,13 +55,24 @@ class Listener(SubscribeCallback):
             except Exception as exception:
                 print(f'\n-- Local chain was NOT replaced: {exception} ')
 
+        # check if the message is received in the TRANSACTION channel
+        elif message_object.channel == CHANNELS['TRANSACTION']:
+
+            # deserialize the message into an actual transaction
+            transaction = Transaction.from_dictionary(message_object.message)
+
+            # add/set the received transaction to the local node transaction pool
+            self.transaction_pool.set_transaction(transaction)
+
+            print(f'\n -- Set/Add the new transaction into the transaction pool')
+
 
 class PubSub():
     """
     Manages the publish/subscribe layer of the application.
     This layer provides communication capabilities between the nodes of the blockchain network.
     """
-    def __init__(self, blockchain):
+    def __init__(self, blockchain, transaction_pool):
         """
         Constructor:
         - subscribe to CHANNELS
@@ -64,11 +80,11 @@ class PubSub():
         """
         self.pubnub = PubNub(pnconfig)
 
-        # sends an HTTP request to PubNub.com informing that the instance pubnub is now subscribed to TEST_CHANNEL
+        # sends an HTTP request to PubNub.com informing that the instance pubnub is now subscribed to the CHANNELS
         self.pubnub.subscribe().channels(CHANNELS.values()).execute()
 
-        self.my_listener = Listener(blockchain)
-
+        # starts the Listener
+        self.my_listener = Listener(blockchain, transaction_pool)
         self.pubnub.add_listener(self.my_listener)
 
     def publish(self, channel, message):
@@ -88,6 +104,12 @@ class PubSub():
         Broadcast a block to all nodes of the blockchain network subscribed to the BLOCK channel
         """
         self.publish(CHANNELS['BLOCK'], block.to_dictionary())
+
+    def broadcast_transaction(self, transaction):
+        """
+        Broadcast a transaction to all nodes of the blockchain network subscribed to the TRANSACTION channel
+        """
+        self.publish(CHANNELS['TRANSACTION'], transaction.to_dictionary())
 
 
 def main():

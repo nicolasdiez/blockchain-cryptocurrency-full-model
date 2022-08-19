@@ -17,7 +17,7 @@ class Wallet:
     - Authorize transactions by the peer (miner) by using the pair of public/private keys
     """
     def __init__(self):
-        # getting just first 8 chars as the wallet address to ease debugging
+        # just getting the first 8 chars of the random uuid generated as the wallet address to ease debugging
         self.address = str(uuid.uuid4())[:8]
 
         # using Standard Efficient Cryptography Prime 256-bit algorithm (bitcoin uses this one as well)

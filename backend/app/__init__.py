@@ -8,6 +8,7 @@ from backend.blockchain.blockchain import Blockchain
 from backend.pubsub import PubSub
 from backend.wallet.wallet import Wallet
 from backend.wallet.transaction import Transaction
+from backend.wallet.transaction_pool import TransactionPool
 
 
 # create Flask web server
@@ -16,11 +17,15 @@ app = Flask(__name__)
 # create the blockchain instance for the Node
 blockchain = Blockchain()
 
+# create a transaction pool instance to store all the generated transactions in the nodes
+transaction_pool = TransactionPool()
+
 # create Publish/Subscribe instance (PubSub) to share events and messages among the peers of the blockchain network
-pubsub = PubSub(blockchain)
+pubsub = PubSub(blockchain, transaction_pool)
 
 # create Wallet instance
 wallet = Wallet()
+print(f'\n -- My address is: {wallet.address}')
 
 
 # 1st endpoint --> default (TODO: add a nice blockchain pic into an HTML file and render it here)
@@ -39,10 +44,14 @@ def route_blockchain():
 # 3rd endpoint --> mine a new block
 @app.route('/blockchain/mine', methods=['GET'])
 def route_blockchain_mine():
-    # create a new block and add it to the chain
-    blockchain.add_block('endpoint test data')
 
-    # broadcast the new added block
+    # get all the transactions present in the transaction pool in json serialized format
+    transactions_pool_json = transaction_pool.to_json_serialized()
+
+    # create a new block and add it to the chain
+    blockchain.add_block(transactions_pool_json)
+
+    # broadcast the new added block to the chain
     block = blockchain.chain[-1]
     pubsub.broadcast_block(block)
 
@@ -54,11 +63,19 @@ def route_blockchain_mine():
 @app.route('/wallet/transaction', methods=['POST'])
 def route_wallet_transaction():
     print('\n-- endpoint wallet/transaction')
-    # format of the JSON of the request --> {'recipient': 'xxx' , 'amount': '100'}
+    # format of the JSON received in the POST body request --> {'recipient': 'xxx' , 'amount': '100'}
     transaction_data = request.get_json()
-    transaction = Transaction(wallet, transaction_data['recipient'], transaction_data['amount'])
 
-    print(f'\n-- transaction.to_dictionary(): {transaction.to_dictionary()}')
+    # check if there is already a transaction in the pool initiated from the 'address'
+    transaction = transaction_pool.find_existing_transaction(wallet.address)
+
+    if transaction:
+        transaction.update_transaction(wallet, transaction_data['recipient'], transaction_data['amount'])
+    else:
+        transaction = Transaction(wallet, transaction_data['recipient'], transaction_data['amount'])
+
+    # every time a new transaction is generated through this endpoint, the transaction is broadcasted to all nodes
+    pubsub.broadcast_transaction(transaction)
 
     return jsonify(transaction.to_dictionary())
 
@@ -84,7 +101,6 @@ if os.environ.get('PEER') == 'True':
         print('\n-- Local chain synchronized successfully')
     except Exception as exception:
         print(f'\n-- Error synchronizing local chain: {exception}')
-
 
 
 # run the Flask web server

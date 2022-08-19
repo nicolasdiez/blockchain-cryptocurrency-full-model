@@ -11,12 +11,17 @@ class Transaction:
     - Only 1 transaction per sender per block
     - A transaction can contain multiple recipients
     """
+    # set all the input values to default value None
+    def __init__(self, sender_wallet=None, recipient_address=None, amount=None, id=None, output=None, input=None):
 
-    def __init__(self, sender_wallet, recipient_address, amount):
-        self.id = str(uuid.uuid4())[:8]
-        self.output = self.generate_output_balance(sender_wallet, recipient_address, amount)
+        # 'id' is used if provided into the object instantiation, otherwise use the random UUID
+        self.id = id or str(uuid.uuid4())[:8]
 
-        self.input = self.generate_transaction(sender_wallet, self.output)
+        # 'output' is used if provided into the object instantiation, otherwise use the generate method
+        self.output = output or self.generate_output_balance(sender_wallet, recipient_address, amount)
+
+        # 'input' is used if provided into the object instantiation, otherwise use the generate method
+        self.input = input or self.generate_transaction(sender_wallet, self.output)
 
     @staticmethod
     def generate_output_balance(sender_wallet, recipient_address, amount):
@@ -93,10 +98,21 @@ class Transaction:
         """
         return self.__dict__
 
+    @staticmethod
+    def from_dictionary(transaction_dictionary):
+        """
+        Transform a dictionary containing transaction attributes back into an actual transaction instance
+        """
+        return Transaction(**transaction_dictionary)
+
 
 def main():
     transaction = Transaction(Wallet(), 'recipient', 15)
     print(f'transaction.__dict__:{transaction.__dict__}')
+
+    transaction_dictionary = transaction.to_dictionary()
+    restored_transaction = Transaction.from_dictionary(transaction_dictionary)
+    print(f'restored_transaction.__dict__:  {restored_transaction.__dict__}')
 
 
 if __name__ == '__main__':
