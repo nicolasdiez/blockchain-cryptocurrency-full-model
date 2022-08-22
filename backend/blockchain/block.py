@@ -58,7 +58,7 @@ class Block:
         timestamp = time.time_ns()
         last_hash = last_block.hash
         difficulty = Block.adjust_difficulty(last_block, timestamp)  # difficulty adjusted dynamically w/ each new block
-        nonce = 0  # first nonce value to try
+        nonce = 0  # first nonce value to be tried
         hash = crypto_hash(timestamp, last_hash, data, difficulty, nonce)
 
         # Proof of Work
@@ -159,6 +159,13 @@ class Block:
         Transform the block into a dictionary which contains its attributes
         """
         return self.__dict__
+
+    @staticmethod
+    def from_dictionary(block_dictionary):
+        """
+        Transform a dictionary containing block attributes into an actual block instance
+        """
+        return Block(**block_dictionary)
 
 
 # main() used to debug, it only executes when directly calling this file from cli

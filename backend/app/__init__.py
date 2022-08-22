@@ -1,38 +1,119 @@
-from flask import Flask, jsonify
+import os
+import random
+import requests
+
+from flask import Flask, jsonify, request
 
 from backend.blockchain.blockchain import Blockchain
+from backend.pubsub import PubSub
+from backend.wallet.wallet import Wallet
+from backend.wallet.transaction import Transaction
+from backend.wallet.transaction_pool import TransactionPool
 
-# Create Flask web server
+
+# create Flask web server
 app = Flask(__name__)
 
-# create a blockchain instance
+# create the blockchain instance for the Node
 blockchain = Blockchain()
 
-# add some dummy blocks to the chain
-# for i in range(1, 3):
-#     blockchain.add_block(i)
+# create a transaction pool instance to store all the generated transactions in the nodes
+transaction_pool = TransactionPool()
+
+# create Publish/Subscribe instance (PubSub) to share events and messages among the peers of the blockchain network
+pubsub = PubSub(blockchain, transaction_pool)
+
+# create Wallet instance
+wallet = Wallet()
+print(f'\n -- My address is: {wallet.address}')
 
 
-# 1st endpoint -> default
-@app.route("/")
+# 1st endpoint --> default (TODO: add a nice blockchain pic into an HTML file and render it here)
+@app.route("/", methods=['GET'])
 def route_default():
     return 'Welcome to the Blockchain!'
 
 
-# 2nd endpoint --> return the blockchain data
-@app.route('/blockchain')
+# 2nd endpoint --> return the complete blockchain data
+@app.route('/blockchain', methods=['GET'])
 def route_blockchain():
     # return the blockchain as a list of blocks
     return jsonify(blockchain.to_list())
 
 
 # 3rd endpoint --> mine a new block
-@app.route('/blockchain/mine')
+@app.route('/blockchain/mine', methods=['GET'])
 def route_blockchain_mine():
 
-    blockchain.add_block('endpoint test data')
-    return jsonify(blockchain.chain[-1].to_dictionary())
+    # get all the transactions present in the transaction pool in json serialized format
+    transactions_pool_json = transaction_pool.to_json_serialized()
+
+    # create a new block and add it to the chain
+    blockchain.add_block(transactions_pool_json)
+
+    # broadcast the new added block to the chain
+    block = blockchain.chain[-1]
+    pubsub.broadcast_block(block)
+
+    # response with the new created and added block
+    return jsonify(block.to_dictionary())
+
+
+# 4th endpoint --> generate a transaction
+@app.route('/wallet/transaction', methods=['POST'])
+def route_wallet_transaction():
+    print('\n-- endpoint wallet/transaction')
+    # format of the JSON received in the POST body request --> {'recipient': 'xxx' , 'amount': '100'}
+    transaction_data = request.get_json()
+
+    # check if there is already a transaction in the pool initiated from the 'address'
+    transaction = transaction_pool.find_existing_transaction(wallet.address)
+
+    if transaction:
+        transaction.update_transaction(wallet, transaction_data['recipient'], transaction_data['amount'])
+    else:
+        transaction = Transaction(wallet, transaction_data['recipient'], transaction_data['amount'])
+
+    # every time a new transaction is generated through this endpoint, the transaction is broadcasted to all nodes
+    pubsub.broadcast_transaction(transaction)
+
+    return jsonify(transaction.to_dictionary())
+
+
+# port only used by the 1st node of the network. This 1st node holds the complete chain from the beginning in his ledger
+ROOT_PORT = 5000
+
+PORT = ROOT_PORT
+
+# for the rest of the nodes of the network (excepting the 1st one) a new different port is used
+if os.environ.get('PEER') == 'True':
+    # choose a random port for each PEER between 1000 different ports
+    PORT = random.randint(5001, 6000)
+
+    # synchronize the chain for the new peer by retrieving the complete chain from the first node of the network
+    result = requests.get(f'http://localhost:{ROOT_PORT}/blockchain')
+    print(f'result.json():{result.json()}')
+
+    result_blockchain = Blockchain.from_list(result.json())
+
+    try:
+        blockchain.replace_chain(result_blockchain.chain)
+        print('\n-- Local chain synchronized successfully')
+    except Exception as exception:
+        print(f'\n-- Error synchronizing local chain: {exception}')
 
 
 # run the Flask web server
-app.run()
+app.run(port=PORT)
+
+
+def main():
+    pubsub.remove_listener()
+
+
+if __name__ == '__main__':
+    print(f'Starting: {__name__}')
+    main()
+    print(f'Finishing: {__name__}')
+    # sys.exit()
+    os._exit(0)

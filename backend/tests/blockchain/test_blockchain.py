@@ -6,6 +6,7 @@ from backend.blockchain.block import GENESIS_DATA
 # number of blocks to be added to the chain used in the tests
 NUMBER_OF_BLOCKS = 5
 
+
 @pytest.fixture
 def number_of_blocks():
     return NUMBER_OF_BLOCKS
