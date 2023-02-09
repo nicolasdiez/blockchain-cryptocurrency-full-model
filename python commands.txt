@@ -1,0 +1,10 @@
+source blockchain-full-env/Scripts/activate
+python -u -m backend.app
+
+source blockchain-full-env/Scripts/activate
+export PEER=True && python -u -m backend.app
+
+export PEER=True && python -u -m backend.app
+
+source blockchain-full-env/Scripts/activate
+python -u -m backend.scripts.test_app
