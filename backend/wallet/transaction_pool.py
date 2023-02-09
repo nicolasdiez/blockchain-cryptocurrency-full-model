@@ -23,7 +23,7 @@ class TransactionPool:
         """
         Return the transactions of the pool into JSON serialized format
         """
-        # get all the transaction instances from the pool
+        # get all the transaction instances from the transaction pool
         transaction_instances = self.transaction_map.values()
 
         # transform the transaction instances into a list of all the JSON representations of the transaction instances
