@@ -17,7 +17,7 @@ app = Flask(__name__)
 # create the blockchain instance for the Node
 blockchain = Blockchain()
 
-# create a transaction pool instance to store all the generated transactions in the nodes
+# create a transaction pool instance to store all the generated transactions from the nodes
 transaction_pool = TransactionPool()
 
 # create Publish/Subscribe instance (PubSub) to share events and messages among the peers of the blockchain network
@@ -48,12 +48,16 @@ def route_blockchain_mine():
     # get all the transactions present in the transaction pool in json serialized format
     transactions_pool_json = transaction_pool.to_json_serialized()
 
-    # create a new block and add it to the chain
+    # create a new block with all the transactions from the pool and add it to the chain
     blockchain.add_block(transactions_pool_json)
 
     # broadcast the new added block to the chain
     block = blockchain.chain[-1]
     pubsub.broadcast_block(block)
+
+    # once the new block is broadcasted, delete the transactions which have been added to the blockchain from the
+    # transactions pool
+    transaction_pool.clear_transactions(blockchain)
 
     # response with the new created and added block
     return jsonify(block.to_dictionary())
@@ -69,8 +73,10 @@ def route_wallet_transaction():
     # check if there is already a transaction in the pool initiated from the 'address'
     transaction = transaction_pool.find_existing_transaction(wallet.address)
 
+    # if there is a transaction in the pool already initiated by the 'address', then update the transaction w/ new data
     if transaction:
         transaction.update_transaction(wallet, transaction_data['recipient'], transaction_data['amount'])
+    # otherwise, just create a new transaction
     else:
         transaction = Transaction(wallet, transaction_data['recipient'], transaction_data['amount'])
 
