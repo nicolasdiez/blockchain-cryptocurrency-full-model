@@ -16,7 +16,7 @@ class Wallet:
     - Tracking the balance of the peer (miner)
     - Authorize transactions by the peer (miner) by using the pair of public/private keys
     """
-    def __init__(self):
+    def __init__(self, blockchain=None):
         # just getting the first 8 chars of the random uuid generated as the wallet address to ease debugging
         self.address = str(uuid.uuid4())[:8]
 
@@ -29,7 +29,12 @@ class Wallet:
         # Transform the format of the public key into a series of bytes
         self.serialize_public_key()
 
-        self.balance = STARTING_BALANCE
+        self.blockchain = blockchain
+
+    # re-calculate balance of the Wallet everytime the balance is accessed
+    @property
+    def balance(self):
+        return Wallet.calculate_balance(self.blockchain, self.address)
 
     def sign(self, data):
         """
@@ -81,6 +86,34 @@ class Wallet:
         self.public_key = decoded_public_key
 
         # print(f'self.public_key: {self.public_key}')
+
+    @staticmethod
+    def calculate_balance(blockchain, address):
+        """
+        Determine the balance of the given address by checking the transaction data within the blockchain.
+
+        The balance for a specific address is found by adding the output values that belong to the address
+        since the most recent transaction by that address.
+
+        Note that when a wallet makes a transaction it officially resets its balance.
+        """
+        balance = STARTING_BALANCE
+
+        # prevent crash in case Wallet is instanced without providing a blockchain as input
+        if not blockchain:
+            return balance
+
+        for block in blockchain.chain:
+            for transaction in block.data:
+                # check if the address has initiated a transaction
+                if transaction['input']['address'] == address:
+                    # every time an address initiates a new transaction it resets its balance (taken from the output)
+                    balance = transaction['output'][address]
+                # check if the address is a recipient of a transaction
+                elif address in transaction['output']:
+                    balance += transaction['output'][address]
+
+        return balance
 
 
 def main():

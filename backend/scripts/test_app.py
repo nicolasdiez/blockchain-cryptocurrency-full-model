@@ -26,6 +26,11 @@ def post_wallet_transaction(recipient, amount):
     ).json()
 
 
+# consume endpoint GET /wallet/data
+def get_wallet_data():
+    return requests.get(f'{LOCALHOST_BASE_URL}/wallet/data').json()
+
+
 start_blockchain = get_blockchain()
 print(f'start_blockchain: {start_blockchain}')
 
@@ -52,3 +57,6 @@ time.sleep(2)
 
 block_mined = get_blockchain_mine()
 print(f'\nblock_mined:{block_mined}')
+
+wallet_information = get_wallet_data()
+print(f'\nwallet_information:{wallet_information}')

@@ -2,6 +2,7 @@ import uuid
 import time
 
 from backend.wallet.wallet import Wallet
+from backend.config import MINING_REWARD, MINING_REWARD_INPUT_ADDRESS
 
 
 class Transaction:
@@ -91,6 +92,15 @@ class Transaction:
         if not Wallet.verify_signature(transaction.input['public_key'], transaction.output,
                                        transaction.input['signature']):
             raise Exception('Error in transaction signature')
+
+    @staticmethod
+    def generate_mining_reward_transaction(miner_wallet):
+        """
+        Create a new reward transaction for the miner
+        """
+        output_reward_transaction = {miner_wallet.address: MINING_REWARD}
+
+        return Transaction(input=MINING_REWARD_INPUT_ADDRESS, output=output_reward_transaction)
 
     def to_dictionary(self):
         """

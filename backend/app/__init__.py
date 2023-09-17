@@ -24,7 +24,7 @@ transaction_pool = TransactionPool()
 pubsub = PubSub(blockchain, transaction_pool)
 
 # create Wallet instance
-wallet = Wallet()
+wallet = Wallet(blockchain)
 print(f'\n -- My address is: {wallet.address}')
 
 
@@ -47,6 +47,9 @@ def route_blockchain_mine():
 
     # get all the transactions present in the transaction pool in json serialized format
     transactions_pool_json = transaction_pool.to_json_serialized()
+
+    # include the reward transaction for myself (as a miner) into the transaction pool
+    transactions_pool_json.append(Transaction.generate_mining_reward_transaction(wallet).to_dictionary())
 
     # create a new block with all the transactions from the pool and add it to the chain
     blockchain.add_block(transactions_pool_json)
@@ -84,6 +87,12 @@ def route_wallet_transaction():
     pubsub.broadcast_transaction(transaction)
 
     return jsonify(transaction.to_dictionary())
+
+
+# 5th endpoint --> return wallet data (address and balance) for the provided wallet
+@app.route('/wallet/data', methods=['GET'])
+def route_wallet_data():
+    return jsonify({'address': wallet.address, 'balance': wallet.balance})
 
 
 # port only used by the 1st node of the network. This 1st node holds the complete chain from the beginning in his ledger
