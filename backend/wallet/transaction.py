@@ -84,6 +84,17 @@ class Transaction:
         """
         Verifies is a transaction is correct in terms of structure.
         """
+        # transactions which are mining rewards have: As output just one single entry AND the value is equal to the MINING_REWARD value
+        if (transaction.input == MINING_REWARD_INPUT_ADDRESS):
+            if len(transaction.output) != 1:
+                raise Exception('Error - Minining reward is not valid: transaction output has more than 1 recipient')
+            
+            output_values = list(transaction.output.values())
+            if output_values != [MINING_REWARD]:
+                raise Exception('Error - Minining reward is not valid: transaction output value is not equal to MINING_REWARD value')
+            
+            return
+
         output_total_balance = sum(transaction.output.values())
 
         if transaction.input['amount'] != output_total_balance:
