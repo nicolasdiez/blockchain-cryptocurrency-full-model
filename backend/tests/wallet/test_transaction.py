@@ -143,7 +143,7 @@ def test_invalid_reward_transaction_wrong_transaction_amount():
     miner_wallet = Wallet()
     reward_transaction = Transaction.generate_mining_reward_transaction(miner_wallet)
 
-    # modify amount of the transaction
+    # modify amount of the reward transaction for the miner
     reward_transaction.output[miner_wallet.address] = 66
 
     with pytest.raises(Exception, match='Error - Minining reward is not valid: transaction output value is not equal to MINING_REWARD value'):

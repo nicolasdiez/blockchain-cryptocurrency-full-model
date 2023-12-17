@@ -3,6 +3,9 @@ import pytest
 from backend.blockchain.blockchain import Blockchain
 from backend.blockchain.block import GENESIS_DATA
 
+from backend.wallet.wallet import Wallet
+from backend.wallet.transaction import Transaction
+
 # number of blocks to be added to the chain used in the tests
 NUMBER_OF_BLOCKS = 5
 
@@ -19,8 +22,8 @@ def blockchain_with_some_blocks(number_of_blocks):
 
     # add some blocks to the chain
     for i in range(1, number_of_blocks):
-        blockchain.add_block(f'data-for-block-{i}')
-        # print(f'data-for-block-{i}')
+        blockchain.add_block([Transaction(Wallet(), 'recipient_address', i).to_dictionary()])
+        # print(f'data-for-block-{i}: ')
 
     return blockchain
 
@@ -67,6 +70,41 @@ def test_is_valid_chain_error_in_genesis_block(blockchain_with_some_blocks):
     with pytest.raises(Exception, match='The genesis block is not correct'):
         # this will raise an exception since the hash value of the genesis block has been tampered
         Blockchain.is_valid_chain(blockchain_with_some_blocks.chain)
+
+
+def test_is_valid_chain_transactions(blockchain_with_some_blocks):
+    Blockchain.is_valid_chain_transactions(blockchain_with_some_blocks.chain)
+
+
+def test_is_valid_chain_transactions_duplicated_transaction(blockchain_with_some_blocks):
+    transaction = Transaction(Wallet(), 'recipient_dummy', 999).to_dictionary()
+
+    blockchain_with_some_blocks.add_block([transaction, transaction])
+
+    with pytest.raises(Exception, match="is not unique in the chain"):
+        Blockchain.is_valid_chain_transactions(blockchain_with_some_blocks.chain)
+
+
+def test_is_valid_chain_transactions_multiple_miner_rewards_in_block(blockchain_with_some_blocks):
+    transaction_reward_1 = Transaction.generate_mining_reward_transaction(Wallet()).to_dictionary()
+    transaction_reward_2 = Transaction.generate_mining_reward_transaction(Wallet()).to_dictionary()
+
+    blockchain_with_some_blocks.add_block([transaction_reward_1, transaction_reward_2])
+
+    with pytest.raises(Exception, match="has more than one mining reward"):
+        Blockchain.is_valid_chain_transactions(blockchain_with_some_blocks.chain)
+
+
+def test_is_valid_chain_transactions_with_erroneous_transaction(blockchain_with_some_blocks):
+    erroneous_transaction = Transaction(Wallet(), 'recipient_dummy', 999)
+    
+    # change the legit signature for a new generated one
+    erroneous_transaction.input['signature'] = Wallet().sign(erroneous_transaction.output)
+
+    blockchain_with_some_blocks.add_block([erroneous_transaction.to_dictionary()])
+
+    with pytest.raises(Exception):
+        Blockchain.is_valid_chain_transactions(blockchain_with_some_blocks.chain)
 
 
 def test_blockchain_instance():

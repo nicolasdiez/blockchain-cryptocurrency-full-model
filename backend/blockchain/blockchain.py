@@ -1,4 +1,6 @@
 from backend.blockchain.block import Block
+from backend.wallet.transaction import Transaction
+from backend.config import MINING_REWARD_INPUT_ADDRESS
 
 
 class Blockchain:
@@ -37,6 +39,37 @@ class Blockchain:
             current_block = chain[i]
             last_block = chain[i-1]
             Block.is_valid_block(last_block, current_block)
+
+    @staticmethod
+    def is_valid_chain_transactions(chain):
+        """
+        Validate a chain of blocks from the point of view of the transactions included on it.
+        Conditions that must be met are the following:
+        1- each transaction must appear only once within the chain
+        2- only one mining reward is permited per block
+        3- each transaction must comply with the transaction rules
+        """
+
+        transactions_ids_in_chain = set()
+
+        for block in chain:
+            block_has_mining_reward = False
+            
+            for transacion_dict in block.data:
+                transaction = Transaction.from_dictionary(transacion_dict)
+
+                if transaction.input == MINING_REWARD_INPUT_ADDRESS:
+                    if block_has_mining_reward:
+                        raise Exception(f'Block with hash {block.hash} has more than one mining reward. Only 1 mining reward is allowed per block')
+                    
+                    block_has_mining_reward = True
+
+                if transaction.id in transactions_ids_in_chain:
+                    raise Exception(f'Transaction {transaction.id} is not unique in the chain')
+                
+                transactions_ids_in_chain.add(transaction.id)
+
+                Transaction.is_valid_transaction(transaction)
 
     def replace_chain(self, incoming_chain):
         """

@@ -60,7 +60,7 @@ class Transaction:
 
     def update_transaction(self, sender_wallet, recipient_address, amount):
         """
-        Override an existing transaction for an existing or a new recipient
+        Override an existing transaction for an existing or new recipient
         """
 
         if amount > self.output[sender_wallet.address]:
@@ -82,9 +82,11 @@ class Transaction:
     @staticmethod
     def is_valid_transaction(transaction):
         """
-        Verifies is a transaction is correct in terms of structure.
+        Verifies if a transaction is correct in terms of structure.
         """
-        # transactions which are mining rewards have: As output just one single entry AND the value is equal to the MINING_REWARD value
+        # Transactions which are mining rewards comply with: 
+        # 1. As output they have just one single entry
+        # 2. The value output is equal to the MINING_REWARD value
         if (transaction.input == MINING_REWARD_INPUT_ADDRESS):
             if len(transaction.output) != 1:
                 raise Exception('Error - Minining reward is not valid: transaction output has more than 1 recipient')
@@ -95,17 +97,19 @@ class Transaction:
             
             return
 
+        # Transaction output total amount must be equal to the input amount
         output_total_balance = sum(transaction.output.values())
 
         if transaction.input['amount'] != output_total_balance:
             raise Exception('Error in the output transaction balance')
 
+        # Transaction signature must be correct
         if not Wallet.verify_signature(transaction.input['public_key'], transaction.output,
                                        transaction.input['signature']):
             raise Exception('Error in transaction signature')
 
     @staticmethod
-    def generate_mining_reward_transaction(miner_wallet):
+    def generate_mining_reward_transaction(miner_wallet: Wallet):
         """
         Create a new reward transaction for the miner
         """
@@ -115,17 +119,17 @@ class Transaction:
 
     def to_dictionary(self):
         """
-        Transform the transaction into a dictionary which contains its attributes
+        Transform an actual transaction instance into a dictionary which contains its attributes (= JSON)
         """
         return self.__dict__
 
     @staticmethod
     def from_dictionary(transaction_dictionary):
         """
-        Transform a dictionary containing transaction attributes back into an actual transaction instance
+        Transform a dictionary containing transaction attributes (= JSON) back into an actual transaction instance
         """
         return Transaction(**transaction_dictionary)
-
+    
 
 def main():
     transaction = Transaction(Wallet(), 'recipient', 15)
