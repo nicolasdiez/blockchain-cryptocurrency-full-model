@@ -6,6 +6,8 @@ SECONDS = 1000 * MILLISECONDS
 
 # mining params
 MINE_RATE = 4 * SECONDS
+MINING_REWARD = 50
+MINING_REWARD_INPUT_ADDRESS = {'address': '***-official-mining-reward-***'}
 
 # wallet params
 STARTING_BALANCE = 1000

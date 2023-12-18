@@ -52,6 +52,10 @@ class Listener(SubscribeCallback):
             try:
                 self.blockchain.replace_chain(potential_chain)
                 print(f'\n-- Local chain replaced SUCCESSFULLY')
+
+                self.transaction_pool.clear_transactions(self.blockchain)
+                print(f'\n-- Transactions in blockchain removed from the Pool SUCCESSFULLY')
+
             except Exception as exception:
                 print(f'\n-- Local chain was NOT replaced: {exception} ')
 

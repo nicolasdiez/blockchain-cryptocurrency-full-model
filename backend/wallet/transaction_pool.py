@@ -30,3 +30,17 @@ class TransactionPool:
         transaction_data_json = list(map(lambda transaction: transaction.to_dictionary(), transaction_instances))
 
         return transaction_data_json
+
+    def clear_transactions(self, blockchain):
+        """
+        Clear (i.e. delete) the transactions from the TransactionPool which have been already included into a
+        valid block of the blockchain
+        """
+        for block in blockchain.chain:
+            for transaction in block.data:
+                try:
+                    # if the transaction['id'] of the TransactionPool exists in the block, remove it from the pool
+                    self.transaction_map.pop(transaction['id'], None)
+                except KeyError:
+                    pass
+

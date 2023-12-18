@@ -1,6 +1,7 @@
 from backend.wallet.transaction import Transaction
 from backend.wallet.wallet import Wallet
 import pytest
+from backend.config import MINING_REWARD, MINING_REWARD_INPUT_ADDRESS
 
 
 def test_transaction():
@@ -115,3 +116,35 @@ def test_validate_transaction_invalid_signature():
     # reminder --> signature = data + private_key
     with pytest.raises(Exception, match='Error in transaction signature'):
         Transaction.is_valid_transaction(transaction)
+
+
+def test_reward_transaction():
+    miner_wallet = Wallet()
+    transaction = Transaction.generate_mining_reward_transaction(miner_wallet)
+
+    assert transaction.input == MINING_REWARD_INPUT_ADDRESS
+    assert transaction.output[miner_wallet.address] == MINING_REWARD
+
+
+def test_valid_reward_transaction():
+    reward_transaction = Transaction.generate_mining_reward_transaction(Wallet())
+    Transaction.is_valid_transaction(reward_transaction)
+
+def test_invalid_reward_transaction_more_than_1_recipient():
+    reward_transaction = Transaction.generate_mining_reward_transaction(Wallet())
+
+    # add an extra recipient to the transaction
+    reward_transaction.output['another_recipient_address'] = 13
+
+    with pytest.raises(Exception, match='Error - Minining reward is not valid: transaction output has more than 1 recipient'):
+        Transaction.is_valid_transaction(reward_transaction)
+
+def test_invalid_reward_transaction_wrong_transaction_amount():
+    miner_wallet = Wallet()
+    reward_transaction = Transaction.generate_mining_reward_transaction(miner_wallet)
+
+    # modify amount of the reward transaction for the miner
+    reward_transaction.output[miner_wallet.address] = 66
+
+    with pytest.raises(Exception, match='Error - Minining reward is not valid: transaction output value is not equal to MINING_REWARD value'):
+        Transaction.is_valid_transaction(reward_transaction)
