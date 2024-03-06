@@ -71,7 +71,7 @@ def test_is_valid_chain_error_in_genesis_block(blockchain_with_some_blocks):
         # this will raise an exception since the hash value of the genesis block has been tampered
         Blockchain.is_valid_chain(blockchain_with_some_blocks.chain)
 
-
+# Validate a chain of blocks from the point of view of the transactions included on it
 def test_is_valid_chain_transactions(blockchain_with_some_blocks):
     Blockchain.is_valid_chain_transactions(blockchain_with_some_blocks.chain)
 
@@ -104,6 +104,18 @@ def test_is_valid_chain_transactions_with_erroneous_transaction(blockchain_with_
     blockchain_with_some_blocks.add_block([erroneous_transaction.to_dictionary()])
 
     with pytest.raises(Exception):
+        Blockchain.is_valid_chain_transactions(blockchain_with_some_blocks.chain)
+
+def test_is_valid_chain_transactions_with_bad_historic_balance(blockchain_with_some_blocks):
+    wallet = Wallet()
+    bad_transaction = Transaction(wallet, 'recipient_dummy', 999)
+    bad_transaction.output[wallet.address] = 1000
+    bad_transaction.input['amount'] = 1999
+    bad_transaction.input['signature'] = wallet.sign(bad_transaction.output)
+
+    blockchain_with_some_blocks.add_block([bad_transaction.to_dictionary()])
+    
+    with pytest.raises(Exception, match="invalid input amount"):
         Blockchain.is_valid_chain_transactions(blockchain_with_some_blocks.chain)
 
 
