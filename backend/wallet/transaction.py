@@ -83,6 +83,10 @@ class Transaction:
     def is_valid_transaction(transaction):
         """
         Verifies if a transaction is correct in terms of structure.
+        Conditions that must be met:
+        1- comply with the mining reward rules
+        2- transaction output total amount must be equal to the input amount
+        3- transaction signature must be correct
         """
         # Transactions which are mining rewards comply with: 
         # 1. As output they have just one single entry
@@ -97,13 +101,13 @@ class Transaction:
             
             return
 
-        # Transaction output total amount must be equal to the input amount
+        # 2
         output_total_balance = sum(transaction.output.values())
 
         if transaction.input['amount'] != output_total_balance:
             raise Exception('Error in the output transaction balance')
 
-        # Transaction signature must be correct
+        # 3
         if not Wallet.verify_signature(transaction.input['public_key'], transaction.output,
                                        transaction.input['signature']):
             raise Exception('Error in transaction signature')
